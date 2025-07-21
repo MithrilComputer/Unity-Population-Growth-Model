@@ -7,7 +7,7 @@ public class PopulationSimulator : MonoBehaviour
     /// <summary>
     /// The maximum population that can be simulated.
     /// </summary>
-    private int maxPopulation = 1000;
+    private int maxPopulation = 0;
 
     /// <summary>
     /// How fast the simulation will run.
@@ -60,7 +60,12 @@ public class PopulationSimulator : MonoBehaviour
     public int CurrentPopulation => currentPopulation;
 
     /// <summary>
-    /// The current state of the simulation.
+    /// The current running state of the simulation.
+    /// </summary>
+    public bool IsRunning => isSimulationRunning;
+
+    /// <summary>
+    /// The current running state of the simulation.
     /// </summary>
     private bool isSimulationRunning = false;
 
@@ -210,10 +215,12 @@ public class PopulationSimulator : MonoBehaviour
     /// Sets the simulation to run in Linear mode and configures all the associated parameters.
     /// </summary>
     /// <param name="growthRate"></param>
-    public void SetLinearSimulation(float populationGrowthRate, int initialPopulation)
+    public void SetLinearSimulation(float populationGrowthRate, int initialPopulation, float simulationSpeed, float simulationDuration)
     {
-
         simulationType = SimType.Linear;
+
+        this.simulationSpeed = simulationSpeed;
+        this.simulationDuration = simulationDuration;
 
         this.populationGrowthRate = populationGrowthRate;
         this.initialPopulation = initialPopulation;
@@ -225,9 +232,12 @@ public class PopulationSimulator : MonoBehaviour
     /// Sets the simulation to run in Exponential mode and configures all the associated parameters.
     /// </summary>
     /// <param name="growthRate"></param>
-    public void SetExponentialSimulation(float populationGrowthRate, int initialPopulation, int carryingCapacity)
+    public void SetExponentialSimulation(float populationGrowthRate, int initialPopulation, int carryingCapacity, float simulationSpeed, float simulationDuration)
     {
         simulationType = SimType.Exponential;
+
+        this.simulationSpeed = simulationSpeed;
+        this.simulationDuration = simulationDuration;
 
         this.populationGrowthRate = populationGrowthRate;
         this.initialPopulation = initialPopulation;
@@ -240,9 +250,12 @@ public class PopulationSimulator : MonoBehaviour
     /// Sets the simulation to run in Logistic mode and configures all the associated parameters.
     /// </summary>
     /// <param name="growthRate"></param>
-    public void SetLogisticSimulation(float populationGrowthRate, int initialPopulation, int carryingCapacity)
+    public void SetLogisticSimulation(float populationGrowthRate, int initialPopulation, int carryingCapacity, float simulationSpeed, float simulationDuration)
     {
         simulationType = SimType.Logistic;
+
+        this.simulationSpeed = simulationSpeed;
+        this.simulationDuration = simulationDuration;
 
         this.populationGrowthRate = populationGrowthRate;
         this.initialPopulation = initialPopulation;

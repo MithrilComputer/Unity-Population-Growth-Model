@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -88,42 +90,6 @@ public class GraphMaker : MonoBehaviour
         xLineRenderer = origin.Find("Line Renders/X Line Renderer").GetComponent<LineRenderer>();
 
         UpdateGraphMetrics();
-
-        Vector3[] testpoints = new Vector3[10]
-        {
-                Vector3.zero,
-                new Vector3(10, 10),
-                new Vector3(20, 20),
-                new Vector3(30, 30),
-                new Vector3(40, 40),
-                new Vector3(50, 50),
-                new Vector3(60, 60),
-                new Vector3(70, 70),
-                new Vector3(80, 80),
-                new Vector3(90, 90)
-        };
-
-        Vector3[] testpointstwo = new Vector3[10]
-        {
-                Vector3.zero,
-                new Vector3(00, 10),
-                new Vector3(10, 20),
-                new Vector3(20, 30),
-                new Vector3(30, 40),
-                new Vector3(40, 50),
-                new Vector3(50, 60),
-                new Vector3(60, 70),
-                new Vector3(70, 80),
-                new Vector3(80, 90)
-        };
-
-        Vector3[][] testpointsArray = new Vector3[2][]
-            {
-                testpoints,
-                testpointstwo
-            };
-
-        SetPlotPoints(testpointsArray);
     }
 
     /// <summary>
@@ -137,7 +103,13 @@ public class GraphMaker : MonoBehaviour
     {
         graphPlots = points;
 
-        UpdateGraphPlot();
+        try
+        {
+            UpdateGraphPlot();
+        } catch (System.Exception e)
+        {
+            Debug.LogError($"Error setting plot points: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -149,13 +121,18 @@ public class GraphMaker : MonoBehaviour
     /// horizontally.</remarks>
     public void UpdateGraphMetrics()
     {
+        ClearTextSegments();
+
+        if (origin == null)
+            throw new System.NullReferenceException("Origin point not found. Ensure the graph structure is correct.");
+
         for (int x = 0; x < steps.x + 1; x++)
         {
             float xValue = range.x / steps.x * x;
 
             GameObject currentNumber = new GameObject($"X Number {x}");
             currentNumber.transform.SetParent(canvas.transform);
-        
+
             TextMeshPro tmpText = currentNumber.AddComponent<TextMeshPro>();
             tmpText.fontSize = fontSize;
             tmpText.autoSizeTextContainer = true;
@@ -186,11 +163,11 @@ public class GraphMaker : MonoBehaviour
         yLineRenderer.positionCount = 2;
         xLineRenderer.positionCount = 2;
 
-        yLineRenderer.SetPosition(0, new Vector3(0f, 0f, 0f));
-        yLineRenderer.SetPosition(1, new Vector3(0f, range.y * graphScale.y, 0f));
+        yLineRenderer.SetPosition(0, origin.position);
+        yLineRenderer.SetPosition(1, new Vector3(0f, range.y * graphScale.y, 0f) + origin.position);
 
-        xLineRenderer.SetPosition(0, new Vector3(0f, 0f, 0f));
-        xLineRenderer.SetPosition(1, new Vector3(range.x * graphScale.x, 0f, 0f));
+        xLineRenderer.SetPosition(0, origin.position);
+        xLineRenderer.SetPosition(1, new Vector3(range.x * graphScale.x, 0f, 0f) + origin.position);
     }
 
     /// <summary>
@@ -198,12 +175,15 @@ public class GraphMaker : MonoBehaviour
     /// </summary>
     private void UpdateGraphPlot()
     {
+        if (graphPlots == null || graphPlots.Length == 0)
+            throw new System.NullReferenceException("Graph plots are not set. Please set the plot points before updating the graph.");
+
         ClearLineRenderers();
 
         for (int i = 0; i < graphPlots.Length; i++)
         {
             GameObject lineRendererObject = new GameObject($"Line Renderer {i}");
-            lineRendererObject.transform.SetParent(origin.Find("Line Renders"));
+            lineRendererObject.transform.SetParent(origin.Find("Line Renders/Line Graph"));
             lineRendererObject.transform.position = origin.position;
 
             Vector3[] newPlots = GetScaledPlot(graphPlots[i]);
@@ -229,6 +209,9 @@ public class GraphMaker : MonoBehaviour
 
     private Vector3[] GetScaledPlot(Vector3[] originalPlot)
     {
+        if(originalPlot == null)
+            throw new System.ArgumentNullException(nameof(originalPlot), "Original plot cannot be null.");
+
         Vector3[] scaled = new Vector3[originalPlot.Length];
 
         for (int i = 0; i < originalPlot.Length; i++)
@@ -248,9 +231,26 @@ public class GraphMaker : MonoBehaviour
     /// </summary>
     public void ClearLineRenderers()
     {
+        if(origin == null)
+            throw new System.NullReferenceException("Origin point not found. Ensure the graph structure is correct.");
+
         Transform lineParent = origin.Find("Line Renders/Line Graph");
 
         foreach (Transform child in lineParent)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// Clears all tmp text renderers from the graph.
+    /// </summary>
+    public void ClearTextSegments()
+    {
+        if (canvas == null)
+            throw new System.NullReferenceException("Canvas not found. Ensure the graph structure is correct.");
+
+        foreach (Transform child in canvas.transform)
         {
             Destroy(child.gameObject);
         }

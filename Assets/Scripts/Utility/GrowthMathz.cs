@@ -6,6 +6,6 @@ using UnityEngine;
 public static class GrowthMathz 
 {
 
-
+     
 
 }
